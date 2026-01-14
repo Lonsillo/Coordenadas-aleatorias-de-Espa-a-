@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>Coordenadas aleatorias en España</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <!-- Leaflet CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+
+  <style>
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+      background: #f5f5f5;
+    }
+    header {
+      padding: 1rem;
+      background: #1e293b;
+      color: white;
+      text-align: center;
+    }
+    #controls {
+      padding: 1rem;
+      text-align: center;
+      background: white;
+    }
+    button {
+      padding: 0.6rem 1.2rem;
+      font-size: 1rem;
+      border: none;
+      border-radius: 0.5rem;
+      background: #2563eb;
+      color: white;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #1d4ed8;
+    }
+    #coords {
+      margin-top: 0.5rem;
+      font-weight: 500;
+    }
+    #map {
+      height: calc(100vh - 180px);
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Coordenadas aleatorias en España 
+</h1>
+  </header>
+
+  <div id="controls">
+    <button onclick="generateRandomPoint()">Generar coordenadas</button>
+    <div id="coords">Pulsa el botón para generar un punto</div>
+  </div>
+
+  <div id="map"></div>
+
+  <!-- Leaflet JS -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+  <script>
+    const map = L.map('map').setView([40.2, -3.7], 6);
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '© OpenStreetMap contributors'
+    }).addTo(map);
+
+    let marker = null;
+
+    // Bounding box de la España peninsular
+    const SPAIN_BOUNDS = {
+      minLat: 36.0,
+      maxLat: 43.8,
+      minLng: -9.5,
+      maxLng: 3.5
+    };
+
+    // Polígono REALISTA de la España peninsular (simplificado, embebido)
+    // Coordenadas en formato [lng, lat]
+    const SPAIN_POLYGON = [
+      [-9.301, 43.748], [-8.189, 43.768], [-6.734, 43.747], [-5.030, 43.403],
+      [-2.998, 43.325], [-1.868, 43.362], [-0.750, 43.316], [0.514, 42.987],
+      [1.731, 42.605], [2.864, 42.414], [3.217, 41.903], [2.909, 41.384],
+      [1.973, 40.779], [0.865, 40.409], [-0.326, 39.844], [-0.917, 39.315],
+      [-1.748, 38.721], [-2.816, 38.150], [-4.220, 37.395], [-5.615, 36.996],
+      [-6.992, 36.615], [-8.221, 36.897], [-9.086, 37.343], [-9.273, 38.722],
+      [-9.214, 40.002], [-9.293, 41.206], [-9.301, 43.748]
+    ];
+
+    function randomInRange(min, max) {
+      return Math.random() * (max - min) + min;
+    }
+
+    // Ray casting: comprueba si un punto está dentro del polígono
+    function pointInPolygon(lat, lng, polygon) {
+      let inside = false;
+      for (let i = 0, j = polygon.length - 1; i < polygon.length; j = i++) {
+        const xi = polygon[i][1], yi = polygon[i][0];
+        const xj = polygon[j][1], yj = polygon[j][0];
+
+        const intersect = ((yi > lat) !== (yj > lat)) &&
+          (lng < (xj - xi) * (lat - yi) / (yj - yi) + xi);
+        if (intersect) inside = !inside;
+      }
+      return inside;
+    }
+
+    function generateRandomPoint() {
+      let lat, lng;
+      let attempts = 0;
+
+      do {
+        lat = randomInRange(SPAIN_BOUNDS.minLat, SPAIN_BOUNDS.maxLat);
+        lng = randomInRange(SPAIN_BOUNDS.minLng, SPAIN_BOUNDS.maxLng);
+        attempts++;
+      } while (!pointInPolygon(lat, lng, SPAIN_POLYGON) && attempts < 10000);
+
+      const latFixed = lat.toFixed(6);
+      const lngFixed = lng.toFixed(6);
+
+      document.getElementById('coords').textContent =
+        `Latitud: ${latFixed}, Longitud: ${lngFixed}`;
+
+      if (marker) marker.remove();
+
+      marker = L.marker([lat, lng]).addTo(map)
+        .bindPopup(`Lat: ${latFixed}<br>Lng: ${lngFixed}`)
+        .openPopup();
+
+      map.setView([lat, lng], 8);
+    }
+  </script>
+</body>
+</html>
+body>
+</html>
+dy>
+</html>
